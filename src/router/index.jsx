@@ -6,6 +6,7 @@ import LoginPage from "../pages/LoginPage";
 import RegisterPage from "../pages/RegisterPage";
 import EventsPage from "../pages/EventsPage";
 import EventDetailPage from "../pages/EventDetailPage";
+import EditEventPage from "../pages/EditEventPage";
 
 const router = createBrowserRouter([
   {
@@ -19,6 +20,7 @@ const router = createBrowserRouter([
         element: <ProtectedRoute />,
         children: [
           { path: "/events/create", element: <EventsPage /> },
+          { path: "/events/:id/edit", element: <EditEventPage /> },
         ],
       },
     ],
