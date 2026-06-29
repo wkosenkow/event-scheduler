@@ -1,13 +1,13 @@
 import { useState, useEffect } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
-import { getEventById, deleteEvent } from "../services/eventService.js";
 import { useAuth } from "../context/AuthContext.jsx";
+import { ChevronLeft, Calendar, MapPin } from "lucide-react";
 
 export default function EventDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { user } = useAuth();
-  
+  const { user, token } = useAuth();
+
   const [event, setEvent] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -15,7 +15,8 @@ export default function EventDetailPage() {
   const [deleteError, setDeleteError] = useState(null);
 
   useEffect(() => {
-    getEventById(id)
+    fetch(`http://localhost:3001/api/events/${id}`)
+      .then((res) => res.json())
       .then(setEvent)
       .catch((err) => setError(err.message))
       .finally(() => setLoading(false));
@@ -28,7 +29,14 @@ export default function EventDetailPage() {
     setDeleting(true);
     setDeleteError(null);
     try {
-      await deleteEvent(id);
+      const res = await fetch(`http://localhost:3001/api/events/${id}`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || data.message || "Failed to delete event");
+      }
       navigate("/");
     } catch (err) {
       setDeleteError(err.message);
@@ -59,19 +67,7 @@ export default function EventDetailPage() {
         to="/"
         className="inline-flex items-center gap-2 text-sm mb-6 text-sky-600 hover:underline"
       >
-        <svg
-          className="w-4 h-4"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M15 19l-7-7 7-7"
-          />
-        </svg>
+        <ChevronLeft className="w-4 h-4" />
         Back to events
       </Link>
 
@@ -83,64 +79,14 @@ export default function EventDetailPage() {
         <div className="flex flex-col gap-4 mb-6 text-sm text-slate-600">
           <div className="flex flex-wrap items-center gap-3">
             <div className="inline-flex items-center gap-2 rounded-full bg-sky-50 px-3 py-2 text-sky-700">
-              <svg
-                className="w-4 h-4"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <rect
-                  x="3"
-                  y="4"
-                  width="18"
-                  height="18"
-                  rx="2"
-                  ry="2"
-                  strokeWidth={2}
-                />
-                <line
-                  x1="16"
-                  y1="2"
-                  x2="16"
-                  y2="6"
-                  strokeWidth={2}
-                  strokeLinecap="round"
-                />
-                <line
-                  x1="8"
-                  y1="2"
-                  x2="8"
-                  y2="6"
-                  strokeWidth={2}
-                  strokeLinecap="round"
-                />
-                <line x1="3" y1="10" x2="21" y2="10" strokeWidth={2} />
-              </svg>
+              <Calendar className="w-4 h-4" />
               <span>
                 {formattedDate} · {formattedTime}
               </span>
             </div>
             {event.location && (
               <div className="inline-flex items-center gap-2 rounded-full bg-slate-100 px-3 py-2 text-slate-700">
-                <svg
-                  className="w-4 h-4"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
-                  />
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
-                  />
-                </svg>
+                <MapPin className="w-4 h-4" />
                 {event.location}
               </div>
             )}

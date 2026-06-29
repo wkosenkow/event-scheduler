@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { registerUser } from "../services/authService.js";
 
 export default function RegisterPage() {
   const navigate = useNavigate();
@@ -16,7 +15,13 @@ export default function RegisterPage() {
     setLoading(true);
 
     try {
-      await registerUser(name, email, password);
+      const res = await fetch("http://localhost:3001/api/users", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, email, password }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || data.message || "Registration failed");
       navigate("/login");
     } catch (err) {
       setError(err.message);

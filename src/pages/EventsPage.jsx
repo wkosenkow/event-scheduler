@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext.jsx";
-import { createEvent } from "../services/eventService.js";
 
 export default function EventsPage() {
   const navigate = useNavigate();
@@ -27,12 +26,21 @@ export default function EventsPage() {
     setLoading(true);
 
     try {
-      await createEvent({
-        title,
-        description,
-        date: new Date(date).toISOString(),
-        location,
+      const res = await fetch("http://localhost:3001/api/events", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          title,
+          description,
+          date: new Date(date).toISOString(),
+          location,
+        }),
       });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || data.message || "Failed to create event");
       setSuccess("Event created successfully.");
       setTitle("");
       setDescription("");

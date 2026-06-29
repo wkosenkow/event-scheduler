@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
 import EventCard from "../components/EventCard";
-import { getEvents } from "../services/eventService.js";
 
 export default function HomePage() {
   const [events, setEvents] = useState([]);
@@ -8,7 +7,8 @@ export default function HomePage() {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    getEvents()
+    fetch("http://localhost:3001/api/events")
+      .then((res) => res.json())
       .then((data) => {
         const sorted = [...data.results].sort(
           (a, b) => new Date(a.date) - new Date(b.date),

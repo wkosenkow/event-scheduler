@@ -1,27 +1,26 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useAuth } from "../context/AuthContext.jsx";
-import { getEventById, updateEvent } from "../services/eventService.js";
 
 export default function EditEventPage() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { token, user } = useAuth();
-  
+
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [date, setDate] = useState("");
   const [location, setLocation] = useState("");
-  
+
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    getEventById(id)
+    fetch(`http://localhost:3001/api/events/${id}`)
+      .then((res) => res.json())
       .then((event) => {
-        // Guard check: is user the organizer?
         if (user && event.organizerId !== user.id) {
           setError("You are not authorized to edit this event.");
           setLoading(false);
@@ -30,7 +29,6 @@ export default function EditEventPage() {
 
         setTitle(event.title);
         setDescription(event.description || "");
-        // Format date local to YYYY-MM-DDTHH:MM for datetime-local input
         if (event.date) {
           const d = new Date(event.date);
           const offset = d.getTimezoneOffset();
@@ -59,12 +57,21 @@ export default function EditEventPage() {
     setSaving(true);
 
     try {
-      await updateEvent(id, {
-        title,
-        description,
-        date: new Date(date).toISOString(),
-        location,
+      const res = await fetch(`http://localhost:3001/api/events/${id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          title,
+          description,
+          date: new Date(date).toISOString(),
+          location,
+        }),
       });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || data.message || "Failed to update event");
       setSuccess("Event updated successfully.");
       setTimeout(() => {
         navigate(`/events/${id}`);
