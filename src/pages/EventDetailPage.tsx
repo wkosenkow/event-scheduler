@@ -2,23 +2,29 @@ import { useState, useEffect } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { ChevronLeft, Calendar, MapPin } from "lucide-react";
+import type { Event } from "../types/event";
+
+interface EventMutationResponse {
+  error?: string;
+  message?: string;
+}
 
 export default function EventDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { user, token } = useAuth();
 
-  const [event, setEvent] = useState(null);
+  const [event, setEvent] = useState<Event | null>(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
-  const [deleteError, setDeleteError] = useState(null);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
 
   useEffect(() => {
     fetch(`http://localhost:3001/api/events/${id}`)
       .then((res) => res.json())
-      .then(setEvent)
-      .catch((err) => setError(err.message))
+      .then((data: Event) => setEvent(data))
+      .catch((err: Error) => setError(err.message))
       .finally(() => setLoading(false));
   }, [id]);
 
@@ -34,12 +40,12 @@ export default function EventDetailPage() {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (!res.ok) {
-        const data = await res.json();
+        const data: EventMutationResponse = await res.json();
         throw new Error(data.error || data.message || "Failed to delete event");
       }
       navigate("/");
     } catch (err) {
-      setDeleteError(err.message);
+      setDeleteError(err instanceof Error ? err.message : "Failed to delete event");
       setDeleting(false);
     }
   }
