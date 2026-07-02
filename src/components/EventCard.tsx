@@ -1,13 +1,17 @@
 import { Link } from "react-router-dom";
 import { MapPin, Clock, ChevronRight } from "lucide-react";
+import type { Event } from "../types/event";
 
-export default function EventCard({ event }) {
+export default function EventCard({ event }: { event: Event }) {
   const { id, title, description, date, location } = event;
 
   const d = new Date(date);
   const day = d.toLocaleDateString("en-GB", { day: "2-digit" });
   const month = d.toLocaleDateString("en-GB", { month: "short" }).toUpperCase();
-  const time = d.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" });
+  const time = d.toLocaleTimeString("en-GB", {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
   const year = d.getFullYear();
 
   return (
@@ -16,8 +20,10 @@ export default function EventCard({ event }) {
       className="flex items-center gap-5 bg-white rounded-xl px-5 py-4 border border-slate-200 shadow-sm hover:shadow-md transition-shadow no-underline"
     >
       {/* Date block */}
-      <div className="flex-shrink-0 w-14 flex flex-col items-center justify-center rounded-lg py-2 bg-sky-50 text-sky-500">
-        <span className="text-xs font-semibold tracking-widest leading-none">{month}</span>
+      <div className="shrink-0 w-14 flex flex-col items-center justify-center rounded-lg py-2 bg-sky-50 text-sky-500">
+        <span className="text-xs font-semibold tracking-widest leading-none">
+          {month}
+        </span>
         <span className="text-2xl font-bold leading-tight">{day}</span>
         <span className="text-xs leading-none text-slate-500">{year}</span>
       </div>
@@ -34,7 +40,7 @@ export default function EventCard({ event }) {
               {location}
             </span>
           )}
-          <span className="flex items-center gap-1 flex-shrink-0">
+          <span className="flex items-center gap-1 shrink-0">
             <Clock className="w-3.5 h-3.5" />
             {time}
           </span>
