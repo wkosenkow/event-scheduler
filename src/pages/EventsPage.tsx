@@ -1,6 +1,11 @@
-import { useState } from "react";
+import { useState, type FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+
+interface EventMutationResponse {
+  error?: string;
+  message?: string;
+}
 
 export default function EventsPage() {
   const navigate = useNavigate();
@@ -9,12 +14,12 @@ export default function EventsPage() {
   const [description, setDescription] = useState("");
   const [date, setDate] = useState("");
   const [location, setLocation] = useState("");
-  const [error, setError] = useState(null);
-  const [success, setSuccess] = useState(null);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
-  async function handleSubmit(event) {
-    event.preventDefault();
+  async function handleSubmit(e: FormEvent<HTMLFormElement>) {
+    e.preventDefault();
     setError(null);
     setSuccess(null);
 
@@ -39,7 +44,7 @@ export default function EventsPage() {
           location,
         }),
       });
-      const data = await res.json();
+      const data: EventMutationResponse = await res.json();
       if (!res.ok) throw new Error(data.error || data.message || "Failed to create event");
       setSuccess("Event created successfully.");
       setTitle("");
@@ -48,7 +53,7 @@ export default function EventsPage() {
       setLocation("");
       navigate("/");
     } catch (err) {
-      setError(err.message);
+      setError(err instanceof Error ? err.message : "Failed to create event");
     } finally {
       setLoading(false);
     }

@@ -1,6 +1,12 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, type FormEvent } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import type { Event } from "../types/event";
+
+interface EventMutationResponse {
+  error?: string;
+  message?: string;
+}
 
 export default function EditEventPage() {
   const { id } = useParams();
@@ -12,15 +18,15 @@ export default function EditEventPage() {
   const [date, setDate] = useState("");
   const [location, setLocation] = useState("");
 
-  const [error, setError] = useState(null);
-  const [success, setSuccess] = useState(null);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     fetch(`http://localhost:3001/api/events/${id}`)
       .then((res) => res.json())
-      .then((event) => {
+      .then((event: Event) => {
         if (user && event.organizerId !== user.id) {
           setError("You are not authorized to edit this event.");
           setLoading(false);
@@ -35,17 +41,17 @@ export default function EditEventPage() {
           const localTime = new Date(d.getTime() - offset * 60 * 1000);
           setDate(localTime.toISOString().slice(0, 16));
         }
-        setLocation(event.location);
+        setLocation(event.location ?? "");
         setLoading(false);
       })
-      .catch((err) => {
+      .catch((err: Error) => {
         setError(err.message);
         setLoading(false);
       });
   }, [id, user]);
 
-  async function handleSubmit(event) {
-    event.preventDefault();
+  async function handleSubmit(e: FormEvent<HTMLFormElement>) {
+    e.preventDefault();
     setError(null);
     setSuccess(null);
 
@@ -70,14 +76,14 @@ export default function EditEventPage() {
           location,
         }),
       });
-      const data = await res.json();
+      const data: EventMutationResponse = await res.json();
       if (!res.ok) throw new Error(data.error || data.message || "Failed to update event");
       setSuccess("Event updated successfully.");
       setTimeout(() => {
         navigate(`/events/${id}`);
       }, 1500);
     } catch (err) {
-      setError(err.message);
+      setError(err instanceof Error ? err.message : "Failed to update event");
     } finally {
       setSaving(false);
     }
