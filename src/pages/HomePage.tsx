@@ -1,21 +1,26 @@
 import { useState, useEffect } from "react";
 import EventCard from "../components/EventCard";
+import type { Event } from "../types/event";
+
+interface EventsResponse {
+  results: Event[];
+}
 
 export default function HomePage() {
-  const [events, setEvents] = useState([]);
+  const [events, setEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     fetch("http://localhost:3001/api/events")
       .then((res) => res.json())
-      .then((data) => {
+      .then((data: EventsResponse) => {
         const sorted = [...data.results].sort(
-          (a, b) => new Date(a.date) - new Date(b.date),
+          (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime(),
         );
         setEvents(sorted);
       })
-      .catch((err) => setError(err.message))
+      .catch((err: Error) => setError(err.message))
       .finally(() => setLoading(false));
   }, []);
 
